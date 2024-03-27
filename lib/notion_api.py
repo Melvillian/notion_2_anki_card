@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 from dotenv import load_dotenv
 from .http_utils import get, post, patch
 from typing import Any, Tuple, List, Dict
@@ -7,7 +8,7 @@ from notion_client import Client
 import logging
 import structlog
 from notion_client.helpers import iterate_paginated_api
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pprint import pprint
 
 load_dotenv()
@@ -55,7 +56,7 @@ def find_srs_blocks():
     """
 
     # only search a subset of the pages in order to save on time and compute
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     end_date = now - timedelta(days=SEARCH_PERIOD_DAYS)
     print(f"END DATE: {end_date}")
 
@@ -81,10 +82,14 @@ def find_srs_blocks_in_chunk(page_chunk, end_date: datetime) -> Tuple[list, bool
         - A list of SRS blocks found in the page chunk
         - A boolean indicating if we should stop iterating further pages
 
-    We don't want to waste time and compute on iterating through pages that are too old.
-    This function returns True if we should stop iterating further pages.
+    We don't want to waste time and compute on iterating through pages that
+    are too old. This function returns True if we should stop iterating
+    further pages.
 
-    For debugging purposes, here is an example of what a `page_chunk` looks like:
+    For debugging purposes, here is an example of what a `page_chunk` looks
+    like:
+
+    ```json
     [
     {
         'archived': False,
@@ -120,6 +125,7 @@ def find_srs_blocks_in_chunk(page_chunk, end_date: datetime) -> Tuple[list, bool
     },
     ...
     ]
+    ```json
     """
     srs_blocks: List[Dict] = []
     for page in page_chunk:
@@ -128,9 +134,9 @@ def find_srs_blocks_in_chunk(page_chunk, end_date: datetime) -> Tuple[list, bool
         page_title = page["properties"]["title"]["title"][0]["text"]["content"]
         page_id = page["id"]
         page_url = page["url"]
-        pprint(page_title, page_id, page_url)
+        pprint((page_title, page_id, page_url))
 
-        some_srs_blocks = search_and_return_blocks_containing_mention(
+        some_srs_blocks = search_page_for_blocks_containing_mention(
             page_id, MENTION_TEXT
         )
         srs_blocks.extend(some_srs_blocks)
@@ -138,20 +144,123 @@ def find_srs_blocks_in_chunk(page_chunk, end_date: datetime) -> Tuple[list, bool
     return (srs_blocks, False)
 
 
-def search_and_return_blocks_containing_mention(
+def search_page_for_blocks_containing_mention(
     page_id: str, mention_text: str
 ) -> List[Dict]:
-    """
-    Search a Notion page for blocks containing a mention text
-    and return any matching blocks
+    """Search a Notion page for blocks containing a mention textand return any matching blocks
+
+    For debugging purposes, here's an example output from the notion.blocks.children.list
+    API call:
+
+    ```json
+    [
+    {
+        'archived': False,
+        'created_by': {'id': '5be127e8-c6d7-4a7b-a46d-a0eb3bc9d6af',
+                      'object': 'user'},
+       'created_time': '2024-03-26T10:58:00.000Z',
+       'has_children': False,
+       'id': '29379cd8-ae47-4282-8353-d1248fbbbc96',
+       'last_edited_by': {'id': '5be127e8-c6d7-4a7b-a46d-a0eb3bc9d6af',
+                          'object': 'user'},
+       'last_edited_time': '2024-03-26T10:58:00.000Z',
+       'object': 'block',
+       'paragraph': {'color': 'default',
+                     'rich_text': [{'annotations': {'bold': False,
+                                                    'code': False,
+                                                    'color': 'default',
+                                                    'italic': False,
+                                                    'strikethrough': False,
+                                                    'underline': False},
+                                    'href': None,
+                                    'plain_text': 'This will be about ',
+                                    'text': {'content': 'This will be about ',
+                                             'link': None},
+                                    'type': 'text'},
+                                   {'annotations': {'bold': False,
+                                                    'code': False,
+                                                    'color': 'default',
+                                                    'italic': False,
+                                                    'strikethrough': False,
+                                                    'underline': False},
+                                    'href': 'https://www.notion.so/0348575723954eac83cf072ec2119d64',
+                                    'mention': {'page': {'id': '03485757-2395-4eac-83cf-072ec2119d64'},
+                                                'type': 'page'},
+                                    'plain_text': 'degrowth',
+                                    'type': 'mention'},
+                                   {'annotations': {'bold': False,
+                                                    'code': False,
+                                                    'color': 'default',
+                                                    'italic': False,
+                                                    'strikethrough': False,
+                                                    'underline': False},
+                                    'href': None,
+                                    'plain_text': ' and:',
+                                    'text': {'content': ' and:', 'link': None},
+                                    'type': 'text'}]},
+       'parent': {'page_id': 'aab9a1b4-a9ff-4415-a674-0a3151ba8a76',
+                  'type': 'page_id'},
+       'type': 'paragraph'
+    },
+    {
+        'archived': False,
+        'created_by': {'id': '5be127e8-c6d7-4a7b-a46d-a0eb3bc9d6af',
+                        'object': 'user'},
+        'created_time': '2024-03-26T10:58:00.000Z',
+        'has_children': False,
+        'id': '68217d51-f0e4-45d8-bc36-69dc5cf6f0da',
+        'last_edited_by': {'id': '5be127e8-c6d7-4a7b-a46d-a0eb3bc9d6af',
+                            'object': 'user'},
+        'last_edited_time': '2024-03-26T10:58:00.000Z',
+        'numbered_list_item': {'color': 'default',
+                                'rich_text': [{'annotations': {'bold': False,
+                                                            'code': False,
+                                                            'color': 'default',
+                                                            'italic': False,
+                                                            'strikethrough': False,
+                                                            'underline': False},
+                                            'href': None,
+                                            'plain_text': 'It’s definition',
+                                            'text': {'content': 'It’s definition',
+                                                        'link': None},
+                                            'type': 'text'}]},
+        'object': 'block',
+        'parent': {'page_id': 'aab9a1b4-a9ff-4415-a674-0a3151ba8a76',
+                    'type': 'page_id'},
+        'type': 'numbered_list_item'
+    },
+    ...
+    ]
+    ```json
     """
 
-    for block in iterate_paginated_api(
-        notion.blocks.list,
+    blocks_with_mentions: List[Dict] = []
+    for blocks in iterate_paginated_api(
+        notion.blocks.children.list,
         block_id=page_id,
     ):
-        print("BLOCK DATA")
-        pprint(block)
+        some_blocks_with_mentions: List[Dict] = []
+
+        for block in blocks:
+            # TODO recursively search through block children
+            block_type = block["type"]
+            if block_type not in BLOCK_TYPES_TO_PROCESS:
+                # these block types contain nothing interesting,
+                # continue on
+                continue
+
+            print("BLOCK DATA")
+            pprint(block)
+
+            # search for the mention within each section of of a block
+            # and add the block to our list of mentioned block if it
+            # does indeed contain the mention
+            for content_section in block[block_type]["rich_text"]:
+                if mention_text in content_section["plain_text"]:
+                    some_blocks_with_mentions.append(block)
+
+        blocks_with_mentions.extend(some_blocks_with_mentions)
+    return blocks_with_mentions
 
 
 def normalize_chars(text: str) -> str:
