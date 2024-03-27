@@ -1,5 +1,6 @@
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import List, Dict
 
 load_dotenv()  # take environment variables from .env.
 
@@ -33,7 +34,9 @@ user_prompt_card_generation_template = """
 """
 
 
-def generate_anki_cloze_card(paragraph, topic, model_version="gpt-3.5-turbo"):
+def generate_anki_cloze_card(
+    paragraph: str, topic, model_version: str = "gpt-3.5-turbo"
+) -> str:
     """Generate an Anki cloze deletion flashcard from input paragraph and topic"""
 
     user_prompt_content = user_prompt_card_generation_template.format(
@@ -56,3 +59,8 @@ def generate_anki_cloze_card(paragraph, topic, model_version="gpt-3.5-turbo"):
 
     # TODO: do proper error handling
     return completion.choices[0].message
+
+
+def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[Dict]:
+    # TODO
+    return [{}]

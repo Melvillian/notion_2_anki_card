@@ -73,6 +73,8 @@ def find_srs_blocks():
         if should_break:
             break
 
+    print("SRS BLOCKS")
+    pprint(srs_blocks)
     return srs_blocks
 
 
@@ -267,26 +269,9 @@ def search_page_for_blocks_containing_mention(
     return blocks_with_mentions
 
 
-def normalize_chars(text: str) -> str:
-    """
-    Given a string, replace all strange characters with their ascii equivalents
-
-    This is necessary because of symbols like an apostrophe that can be
-    represented in multiple ways (e.g. "’" and "'") and we want to use
-    the representation that will allow us to look up the correct pages
-    in Notion
-
-    Note: we may need to add more characters to this list in the future,
-    but for now it solves the problem we're facing
-    """
-
-    for i in range(len(text)):
-        # get the unicode code point for the current character
-        code_point = ord(text[i])
-        if code_point == 8217:  # unicode for right apostrophe
-            # replace it with the ascii equivalent
-            text = text[:i] + "'" + text[i + 1 :]
-    return text
+def mark_srs_block_as_processed(block: Dict) -> None:
+    # TODO
+    4 + 3
 
 
 ####################################### OLD #######################################
