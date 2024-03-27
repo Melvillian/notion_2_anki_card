@@ -62,5 +62,6 @@ def generate_anki_cloze_card(
 
 
 def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[Dict]:
-    # TODO
+    """Given a list of raw Notion blocks that contain mentions, generate Anki cloze cards from them"""
+
     return [{}]
