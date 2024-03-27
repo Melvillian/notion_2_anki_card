@@ -11,11 +11,6 @@ def main():
         add_anki_card_to_deck(card)
         mark_srs_block_as_processed(block)
 
-    # user_provided_paragraph = "They are essentially enhanced juries for political problems, composed of a randomly chosen, demographically-representative group. They enable informed decisions on complex political questions. Over 700 instances worldwide have showcased their potential."
-    # user_provided_topic = "Political Science and Law"
-    # anki_card = generate_anki_cloze_card(user_provided_paragraph, user_provided_topic)
-    # print(anki_card)
-
 
 # This makes it so you can run `python main.py` to run this file
 if __name__ == "__main__":

@@ -23,3 +23,6 @@ cards
       content (recursively advance through blocks)
 - [ ] create anki card data using data from notion and LLM
 - [ ] add actual anki cards to my local deck
+- [ ] (Optional): right now the @srs-items are single block, we could extend
+      them to be multi-block (though I'm not sure why I would want that right
+      now)

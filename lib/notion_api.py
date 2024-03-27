@@ -29,7 +29,7 @@ MENTION_TEXT = "srs-item"
 # Only search through the last SEARCH_PERIOD_DAYS days of recently edited pages.
 # I plan to run this in a cronjob daily so we won't need to iterate over many
 # pages
-SEARCH_PERIOD_DAYS = 7
+SEARCH_PERIOD_DAYS = 1
 
 # These are all of the Notion block types that we want to recurse through,
 # looking for more Notion blocks. For instance, we want to ignore the
