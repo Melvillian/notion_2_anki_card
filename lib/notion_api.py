@@ -145,9 +145,11 @@ def find_srs_blocks_in_chunk(page_chunk, end_date: datetime) -> Tuple[list, bool
 
 
 def search_page_for_blocks_containing_mention(
-    page_id: str, mention_text: str
+    block_id: str, mention_text: str
 ) -> List[Dict]:
-    """Search a Notion page for blocks containing a mention textand return any matching blocks
+    """Search a Notion page/block for blocks containing a mention text and return any matching blocks
+
+    We recurse on the block if it has any child blocks
 
     For debugging purposes, here's an example output from the notion.blocks.children.list
     API call:
@@ -237,7 +239,7 @@ def search_page_for_blocks_containing_mention(
     blocks_with_mentions: List[Dict] = []
     for blocks in iterate_paginated_api(
         notion.blocks.children.list,
-        block_id=page_id,
+        block_id=block_id,
     ):
         some_blocks_with_mentions: List[Dict] = []
 
@@ -258,6 +260,12 @@ def search_page_for_blocks_containing_mention(
             for content_section in block[block_type]["rich_text"]:
                 if mention_text in content_section["plain_text"]:
                     some_blocks_with_mentions.append(block)
+
+            if block["has_children"]:
+                # recurse!
+                some_blocks_with_mentions.extend(
+                    search_page_for_blocks_containing_mention(block["id"], mention_text)
+                )
 
         blocks_with_mentions.extend(some_blocks_with_mentions)
     return blocks_with_mentions
