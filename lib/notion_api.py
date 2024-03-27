@@ -131,11 +131,7 @@ def find_srs_blocks_in_chunk(page_chunk, end_date: datetime) -> Tuple[list, bool
     for page in page_chunk:
         if end_date > datetime.fromisoformat(page["last_edited_time"]):
             return (srs_blocks, True)
-        page_title = page["properties"]["title"]["title"][0]["text"]["content"]
         page_id = page["id"]
-        page_url = page["url"]
-        pprint((page_title, page_id, page_url))
-
         some_srs_blocks = search_page_for_blocks_containing_mention(
             page_id, MENTION_TEXT
         )
@@ -251,14 +247,14 @@ def search_page_for_blocks_containing_mention(
                 # continue on
                 continue
 
-            print("BLOCK DATA")
-            pprint(block)
-
             # search for the mention within each section of of a block
             # and add the block to our list of mentioned block if it
             # does indeed contain the mention
             for content_section in block[block_type]["rich_text"]:
-                if mention_text in content_section["plain_text"]:
+                if (
+                    mention_text in content_section["plain_text"]
+                    and not content_section["annotations"]["strikethrough"]
+                ):
                     some_blocks_with_mentions.append(block)
 
             if block["has_children"]:
