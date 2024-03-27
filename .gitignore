@@ -2,3 +2,4 @@
 __pycache__/
 # nix build output
 result
+debug_output.txt
