@@ -1,8 +1,9 @@
 from openai import OpenAI
 from dotenv import load_dotenv
 from typing import List, Dict
-from dataclasses import dataclass
 from pprint import pprint
+from .notion_api import MENTION_TEXT
+from .anki_utils import AnkiCard
 
 load_dotenv()  # take environment variables from .env.
 
@@ -70,13 +71,6 @@ USER_PROMPT_CARD_GENERATION_TEMPLATE = """
 """
 
 
-@dataclass(frozen=True)
-class AnkiCard:
-    text: str
-    topic: str
-    notion_block_id: str
-
-
 def generate_anki_cloze_card(text: str, topic) -> str:
     """Generate an Anki cloze deletion flashcard from input text and topic"""
 
@@ -100,7 +94,7 @@ def generate_anki_cloze_card(text: str, topic) -> str:
     )
 
     # TODO: do proper error handling
-    return completion.choices[0].message
+    return completion.choices[0].message.content
 
 
 def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
@@ -108,18 +102,21 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
     anki_cards: List[AnkiCard] = []
 
     for block in srs_blocks:
-        # first, reconstitute the block's text by stitching together the
-        # plaintext from each section
+        # a Notion block consists of a list of section dicts which contain the
+        # actual text in the "plain_text" key entry. Here we reconstitute
+        # the block's full text from the sections, while ignoring the MENTION tag
+        # because it's irrelevant to Anki card generation
         srs_item_text = "".join(
             [
                 section["plain_text"]
                 for section in block.get(block["type"], {}).get("rich_text", [])
+                if MENTION_TEXT not in section["plain_text"]
             ]
         )
 
         topic = get_topic_from_text(srs_item_text)
-
         anki_card_text = generate_anki_cloze_card(srs_item_text, topic)
+
         anki_card = AnkiCard(anki_card_text, topic, block["id"])
         anki_cards.append(anki_card)
 
@@ -151,7 +148,7 @@ def get_topic_from_text(srs_item_text: str) -> str:
     )
 
     # TODO: do proper error handling
-    topic = completion.choices[0].message
+    topic = completion.choices[0].message.content
     if topic not in TOPICS:
         raise ValueError(
             f"Topic {topic} is not a valid option. Must be one of {TOPICS}"
