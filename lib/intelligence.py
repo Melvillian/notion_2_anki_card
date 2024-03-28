@@ -1,4 +1,5 @@
 from openai import OpenAI
+import re
 from dotenv import load_dotenv
 from typing import List, Dict
 from pprint import pprint
@@ -36,7 +37,6 @@ You are a flashcard creation expert. Your task is to analyze the paragraph that 
 - **Information Density:** Choose a segment of the user-provided paragraph that contains a key fact, definition, or important concept relevant to the topic.  
 - **Conciseness:** The cloze deletion should be as short as possible while still providing enough context for recall.
 - **Deeper Understanding:** The card should test more than simple memorization. If possible, structure the cloze to require analysis, comparison, or application of the concept.
-- **Correct Card Formatting:** The card should be a properly formatted Python string with each cloze deletion marked by {{c1::}}, {{c2::}}, {{c3::}} etc. text.
 
 The 10 topics are: {topics}
 
@@ -47,7 +47,7 @@ For example, given the following input:
 
 Then the output should look like the following valid Python string:  
 
-"A natural gas plant takes about {{c1::10 minutes}} to start"
+A natural gas plant takes about {{c1::10 minutes}} to start
 """
 
 SYSTEM_TOPIC_SELECTION_PROMPT_TEMPLATE = """
@@ -114,15 +114,48 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
             ]
         )
 
+        # create the text we'll put in the Anki card using an LLM
         pprint(f"SRS_ITEM_TEXT: {srs_item_text}")
         topic = get_topic_from_text(srs_item_text)
         anki_card_text = generate_anki_cloze_card(srs_item_text, topic)
+        validated_anki_card_text = validate_and_fix_card_text(anki_card_text)
 
-        anki_card = AnkiCard(anki_card_text, topic, block["id"])
+        # add the Anki Card to our total list of cards we'll later
+        # add to our Anki Deck
+        anki_card = AnkiCard(validated_anki_card_text, block["id"])
         anki_cards.append(anki_card)
 
     pprint(anki_cards)
     return anki_cards
+
+
+def validate_and_fix_card_text(anki_card_text: str) -> str:
+    """Validate Anki card text and fix any issues, returning the fixed text"""
+
+    print("ANKI TEXT DATA")
+    print(anki_card_text)
+
+    # GPT-3.5 likes to surround its output in double-quotes
+    # so we strip those here
+    if anki_card_text[0] == '"':
+        anki_card_text = anki_card_text[1:]
+    if anki_card_text[-1] == '"':
+        anki_card_text = anki_card_text[:-1]
+
+    anki_card_text = make_double_curly(anki_card_text)
+    return anki_card_text
+
+
+def make_double_curly(text):
+    """
+    Simple helper function to correct GPT-3's habit of using
+    single curly braces when it should use double curly braces
+    """
+
+    def replace_single(match):
+        return "{{" + match.group(1) + "}}"
+
+    return re.sub(r"\{(.*?)\}", replace_single, text)
 
 
 def get_topic_from_text(srs_item_text: str) -> str:

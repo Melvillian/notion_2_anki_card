@@ -15,7 +15,6 @@ DECK_NAME = os.environ["DECK_NAME"]
 @dataclass(frozen=True)
 class AnkiCard:
     text: str
-    topic: str
     notion_block_id: str
 
 
