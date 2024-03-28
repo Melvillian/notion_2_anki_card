@@ -9,8 +9,7 @@ def main():
     srs_blocks = find_srs_blocks()
     anki_cards = create_anki_cards_from_srs_blocks(srs_blocks)
     for card in anki_cards:
-        3 + 4
-        # add_anki_card_to_deck(card)
+        add_anki_card_to_deck(card)
         # mark_srs_block_as_processed(card.notion_block_id)
 
 
