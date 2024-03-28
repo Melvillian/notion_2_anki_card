@@ -36,15 +36,15 @@ You are a flashcard creation expert. Your task is to analyze the paragraph that 
 - **Information Density:** Choose a segment of the user-provided paragraph that contains a key fact, definition, or important concept relevant to the topic.  
 - **Conciseness:** The cloze deletion should be as short as possible while still providing enough context for recall.
 - **Deeper Understanding:** The card should test more than simple memorization. If possible, structure the cloze to require analysis, comparison, or application of the concept.
+- **Correct Card Formatting:** The card should be a properly formatted Python string with each cloze deletion marked by {{c1::}}, {{c2::}}, {{c3::}} etc. text.
 
 The 10 topics are: {topics}
 
-For example, given the following input enclosed by double-quotes:
+For example, given the following input:
 
-"
 **Input Paragraph:** In the field of energy economics, the time-to-start for different power plants is an important factor in determining the optimal mix of energy sources. Power plants that can be started quickly, such as natural gas-fired plants which take 10 minutes to start, are better suited to handle fluctuations in demand than plants that take longer to start.  
 **Topic:** Economics and Business
-"
+
 Then the output should look like the following valid Python string:  
 
 "A natural gas plant takes about {{c1::10 minutes}} to start"
@@ -114,6 +114,7 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
             ]
         )
 
+        pprint(f"SRS_ITEM_TEXT: {srs_item_text}")
         topic = get_topic_from_text(srs_item_text)
         anki_card_text = generate_anki_cloze_card(srs_item_text, topic)
 
