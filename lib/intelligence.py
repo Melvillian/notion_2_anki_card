@@ -50,24 +50,21 @@ Then the output should look like the following valid Python string:
 A natural gas plant takes about {{c1::10 minutes}} to start
 """
 
-SYSTEM_TOPIC_SELECTION_PROMPT_TEMPLATE = """
-Your purpose is to categorize text into exactly 1 of the following topics, given as a comma-separated list of 10 topics:
-
-{topics}
-
-You CANNOT response with a topic that is not one of the 10 options provided in the prompt. Your purpose is to select exactly 1 topic from the list to categorize the text.
-"""
-
-USER_TOPIC_SELECTION_PROMPT_TEMPLATE = """
-Please categorize the text given below:
-
-{text}
-"""
-
-
 USER_PROMPT_CARD_GENERATION_TEMPLATE = """
 **Input Paragraph:** {text}
 **Topic:** {topic}
+"""
+
+SYSTEM_TOPIC_SELECTION_PROMPT_TEMPLATE = """
+Your purpose is to categorize text into exactly 1 of the following topics, given as a comma-separated list of 10 topics. You MUST respond with a topic that is one of the 10 options provided below:
+
+{topics}
+"""
+
+USER_TOPIC_SELECTION_PROMPT_TEMPLATE = """
+Please categorize the following text:
+
+{text}
 """
 
 

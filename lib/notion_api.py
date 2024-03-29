@@ -1,9 +1,6 @@
 import os
-import json
-import sys
 from dotenv import load_dotenv
-from .http_utils import get, post, patch
-from typing import Any, Tuple, List, Dict
+from typing import Tuple, List, Dict
 from notion_client import Client
 import logging
 import structlog
@@ -286,7 +283,7 @@ def search_page_for_blocks_containing_mention(
     return blocks_with_mentions
 
 
-def mark_srs_block_as_processed(block: Dict) -> None:
+def mark_srs_block_as_processed(block: Dict) -> Dict:
     """Adds a strikethrough to the mention text in a block to mark it as processed
 
     This way when we re-run this script, we will ignore this block and
@@ -300,6 +297,42 @@ def mark_srs_block_as_processed(block: Dict) -> None:
         new_rich_text.append(content_section)
 
     block[block_type]["rich_text"] = new_rich_text
-    updated_block = notion.blocks.update(block["id"], block)
+    print(f"Updating block {block['id']}")
+    updated_block = update_block_for_different_block_types(block)
 
     return updated_block
+
+
+def update_block_for_different_block_types(block: Dict) -> Dict:
+    """Handle the fact that different Notion Block types require different named arguments
+
+    This is mostly to get around the annoying aspect of this notion-sdk-py API where, because
+    the `notion.blocks.update` function takes a non-positional `block_id` parameter but a
+    positional argument for the block data, we need to pass the positional block data argument
+    using differently named keyword arguments based on the block type.
+    """
+    block_type = block["type"]
+    block_content = block[block_type]
+
+    if block_type == "paragraph":
+        return notion.blocks.update(block_id=block["id"], paragraph=block_content)
+    elif block_type == "bulleted_list_item":
+        return notion.blocks.update(
+            block_id=block["id"], bulleted_list_item=block_content
+        )
+    elif block_type == "heading_1":
+        return notion.blocks.update(block_id=block["id"], heading_1=block_content)
+    elif block_type == "heading_2":
+        return notion.blocks.update(block_id=block["id"], heading_2=block_content)
+    elif block_type == "heading_3":
+        return notion.blocks.update(block_id=block["id"], heading_3=block_content)
+    elif block_type == "numbered_list_item":
+        return notion.blocks.update(
+            block_id=block["id"], numbered_list_item=block_content
+        )
+    elif block_type == "toggle":
+        return notion.blocks.update(block_id=block["id"], toggle=block_content)
+    else:
+        raise ValueError(
+            f"Block type {block_type} is an unexpected block type that's not in BLOCK_TYPES_TO_PROCESS: {BLOCK_TYPES_TO_PROCESS}"
+        )

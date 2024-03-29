@@ -4,7 +4,6 @@ import json
 import requests
 import os
 from dotenv import load_dotenv
-from pprint import pprint
 
 load_dotenv()  # take environment variables from .env.
 
@@ -69,5 +68,4 @@ def add_anki_card_to_deck(card: AnkiCard) -> None:
         },
     }
 
-    resp = anki_call("addNote", note=note_params)
-    pprint(resp)
+    anki_call("addNote", note=note_params)

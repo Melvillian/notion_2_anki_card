@@ -11,7 +11,7 @@ def main():
     assert len(anki_cards) == len(srs_blocks)
 
     for block in srs_blocks:
-        # add_anki_card_to_deck(card)
+        add_anki_card_to_deck(card)
         mark_srs_block_as_processed(block)
 
 
