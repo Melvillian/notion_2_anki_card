@@ -13,7 +13,7 @@ extend-ignore = "E203"
 [project]
 name = "notion_2_anki_card"
 version = "0.1.0"
-description = "My awesome Python project!"
+description = "A script for ingesting Notion block text data and generation Anki cards from that text"
 authors = [{ name = "Alex Melville" }]
 
 requires-python = ">=3.11"
