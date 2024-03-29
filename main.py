@@ -1,4 +1,3 @@
-from pprint import pprint
 from lib.intelligence import create_anki_cards_from_srs_blocks
 from lib.notion_api import find_srs_blocks, mark_srs_block_as_processed
 from lib.anki_utils import add_anki_card_to_deck, anki_call
@@ -10,7 +9,7 @@ def main():
     anki_cards = create_anki_cards_from_srs_blocks(srs_blocks)
     assert len(anki_cards) == len(srs_blocks)
 
-    for block in srs_blocks:
+    for block, card in list(zip(srs_blocks, anki_cards)):
         add_anki_card_to_deck(card)
         mark_srs_block_as_processed(block)
 
