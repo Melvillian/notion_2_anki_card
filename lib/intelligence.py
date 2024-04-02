@@ -9,7 +9,7 @@ from .anki_utils import AnkiCard
 load_dotenv()  # take environment variables from .env.
 
 # note: the API token gets automatically pulled in from the .env by the OpenAI class
-client = OpenAI()
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Text categories that help the anki card generation prompt hone in on a
 # particular category of ideas
