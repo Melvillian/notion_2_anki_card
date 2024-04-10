@@ -1,5 +1,6 @@
 from openai import OpenAI
 import re
+import os
 from dotenv import load_dotenv
 from typing import List, Dict
 from pprint import pprint
