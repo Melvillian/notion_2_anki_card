@@ -28,6 +28,8 @@ cards
 - [ ] (Optional): right now the @srs-items are single block, we could extend
       them to be multi-block (though I'm not sure why I would want that right
       now)
+- [ ] ensure that anki cart text always contains at least 1 {{c1::}} element. I
+      noticed some of the output from cards does not
 - [ ] After using the script for a couple weeks, go back and tighten the error
       handling for the LLM output. In particular, I noticed that if you feed it
       nonsense text, it will respond with a card related to the prompt,

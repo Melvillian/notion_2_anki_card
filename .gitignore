@@ -1,8 +1,16 @@
 .env
 __pycache__/
+
 # nix build output
 result
-debug_output.txt
+
+# file that holds the card text that must be viewed
+out/
+
+# pyinstaller build files/directories
 build/
 dist/
 main.spec
+
+# random file I use to output long lines of debug text
+debug_output.txt

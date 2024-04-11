@@ -120,7 +120,7 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
 
         # add the Anki Card to our total list of cards we'll later
         # add to our Anki Deck
-        anki_card = AnkiCard(validated_anki_card_text, block["id"])
+        anki_card = AnkiCard(validated_anki_card_text, block)
         anki_cards.append(anki_card)
 
     pprint(anki_cards)
@@ -130,9 +130,6 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
 def validate_and_fix_card_text(anki_card_text: str) -> str:
     """Validate Anki card text and fix any issues, returning the fixed text"""
 
-    print("ANKI TEXT DATA")
-    print(anki_card_text)
-
     # GPT-3.5 likes to surround its output in double-quotes
     # so we strip those here
     if anki_card_text[0] == '"':
@@ -141,6 +138,10 @@ def validate_and_fix_card_text(anki_card_text: str) -> str:
         anki_card_text = anki_card_text[:-1]
 
     anki_card_text = make_double_curly(anki_card_text)
+
+    print("ANKI TEXT DATA")
+    print(anki_card_text)
+
     return anki_card_text
 
 

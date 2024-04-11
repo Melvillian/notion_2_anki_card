@@ -14,7 +14,7 @@ DECK_NAME = os.environ["DECK_NAME"]
 @dataclass(frozen=True)
 class AnkiCard:
     text: str
-    notion_block_id: str
+    notion_block: Dict
 
 
 def build_anki_connect_request(action, **params):
