@@ -6,7 +6,6 @@ import logging
 import structlog
 from notion_client.helpers import iterate_paginated_api
 from datetime import datetime, timedelta, timezone
-from pprint import pprint
 
 load_dotenv()
 
@@ -23,10 +22,9 @@ notion = Client(auth=os.environ["NOTION_KEY"], logger=logger, log_level=logging.
 # an Anki card
 MENTION_TEXT = "srs-item"
 
-# Only search through the last SEARCH_PERIOD_DAYS days of recently edited pages.
-# I plan to run this in a cronjob daily so we won't need to iterate over many
-# pages
-SEARCH_PERIOD_DAYS = 2
+# Only search through the last SEARCH_PERIOD_DAYS days of recently edited pages,
+# because iterating through my whole Notion workspace would be too slow
+SEARCH_PERIOD_DAYS = 5
 
 # These are all of the Notion block types that we want to recurse through,
 # looking for more Notion blocks. For instance, we want to ignore the
@@ -70,8 +68,6 @@ def find_srs_blocks():
         if should_break:
             break
 
-    print("SRS BLOCKS")
-    pprint(srs_blocks)
     return srs_blocks
 
 
@@ -297,7 +293,6 @@ def mark_srs_block_as_processed(block: Dict) -> Dict:
         new_rich_text.append(content_section)
 
     block[block_type]["rich_text"] = new_rich_text
-    print(f"Updating block {block['id']}")
     updated_block = update_block_for_different_block_types(block)
 
     return updated_block

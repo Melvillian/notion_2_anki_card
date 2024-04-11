@@ -5,7 +5,7 @@ __pycache__/
 result
 
 # file that holds the card text that must be viewed
-out/
+cards.pkl
 
 # pyinstaller build files/directories
 build/

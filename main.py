@@ -1,10 +1,12 @@
 import argparse
 import pickle
-import sys
+import os
 from typing import List
 from lib.intelligence import create_anki_cards_from_srs_blocks
 from lib.notion_api import find_srs_blocks, mark_srs_block_as_processed
-from lib.anki_utils import add_anki_card_to_deck, AnkiCard
+from lib.anki_utils import AnkiCard, add_anki_card_to_deck
+
+CARD_FILEPATH = "out/cards.pkl"
 
 
 # This is the entrypoint to your program
@@ -44,7 +46,6 @@ def setup_cli_parsers():
 
 
 def find_srs_blocks_and_create_anki_cards():
-    print("find_srs_blocks_and_create_anki_cards")
     srs_blocks = find_srs_blocks()
     anki_cards = create_anki_cards_from_srs_blocks(srs_blocks)
 
@@ -54,33 +55,73 @@ def find_srs_blocks_and_create_anki_cards():
 
 def write_anki_cards_to_pickle_file(anki_cards: List[AnkiCard]):
     """Write the generated Anki cards to a pickle file for later use"""
+    if len(anki_cards) == 0:
+        print("No card text found from Notion, shutting down...")
+        return
+
     # first, see if we have any existing saved potential card text from a prior
     # execution of the script
     existing_cards = []
     try:
-        with open("notion_2_anki_card/out/cards.pkl", "rb") as f:
+        with open(CARD_FILEPATH, "rb") as f:
             existing_cards = pickle.load(f)
+            existing_cards.extend(anki_cards)
     except FileNotFoundError:
         existing_cards.extend(anki_cards)
 
-    # now, save all the card text to the file
-    with open("notion_2_anki_card/out/cards.pkl", "wb") as f:
-        pickle.dump(existing_cards, f)
+    # filter out any duplicates, which will happen if we run the scan_notion
+    # command twice without running the generate_cards command in between
+    unique_cards: List[AnkiCard] = []
+    for card in existing_cards:
+        block_id = card.notion_block["id"]
+        num_card = len(
+            [
+                another_card
+                for another_card in unique_cards
+                if another_card.notion_block["id"] == block_id
+            ]
+        )
+        if num_card == 0:
+            unique_cards.append(card)
+        elif num_card > 1:
+            print("something wierd happened...")
+    if len(unique_cards) == 0:
+        print("No new cards found, shutting down...")
+        return
 
-    print("Wrote Anki cards to notion_2_anki_card/out/cards.pkl")
+    # now, save all the card text to the file
+    os.makedirs(os.path.dirname(CARD_FILEPATH), exist_ok=True)
+    with open(CARD_FILEPATH, "wb") as f:
+        pickle.dump(unique_cards, f)
+
+    plural_or_singular_cards = "card" if len(unique_cards) == 1 else "cards"
+    print(
+        f"Wrote {len(unique_cards)} Anki {plural_or_singular_cards} to notion_2_anki_card/{CARD_FILEPATH}"
+    )
 
 
 def generate_anki_card_and_mark_as_processed():
-    existing_cards = []
+    existing_cards: List[AnkiCard] = []
     try:
-        with open("notion_2_anki_card/out/cards.pkl", "rb") as f:
+        with open(CARD_FILEPATH, "rb") as f:
             existing_cards = pickle.load(f)
     except FileNotFoundError:
-        print("No existing cards found, Aborting...")
-        sys.exit(0)
+        print("No existing cards found, shutting down...")
+        return
+    print("Please view the list of cards to create and either accept or deny each...\n")
     for card in existing_cards:
-        add_anki_card_to_deck(card)
-        mark_srs_block_as_processed(card.block)
+        print("")
+        print(card.text)
+        user_input = input("Do you want to generate this card? (y/n): ").strip().lower()
+        notion_block_id = card.notion_block["id"]
+        if user_input == "y" or user_input == "":
+            print(f"adding card with id {notion_block_id} to Anki deck...")
+            add_anki_card_to_deck(card)
+        print(f"Updating block with ID: {card.notion_block['id']}")
+        mark_srs_block_as_processed(card.notion_block)
+
+    print("deleting cards.pkl...")
+    os.remove(CARD_FILEPATH)
 
 
 # This makes it so you can run `python main.py` to run this file

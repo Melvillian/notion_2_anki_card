@@ -3,7 +3,6 @@ import re
 import os
 from dotenv import load_dotenv
 from typing import List, Dict
-from pprint import pprint
 from .notion_api import MENTION_TEXT
 from .anki_utils import AnkiCard
 
@@ -113,7 +112,6 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
         )
 
         # create the text we'll put in the Anki card using an LLM
-        pprint(f"SRS_ITEM_TEXT: {srs_item_text}")
         topic = get_topic_from_text(srs_item_text)
         anki_card_text = generate_anki_cloze_card(srs_item_text, topic)
         validated_anki_card_text = validate_and_fix_card_text(anki_card_text)
@@ -123,7 +121,6 @@ def create_anki_cards_from_srs_blocks(srs_blocks: List[Dict]) -> List[AnkiCard]:
         anki_card = AnkiCard(validated_anki_card_text, block)
         anki_cards.append(anki_card)
 
-    pprint(anki_cards)
     return anki_cards
 
 
@@ -138,9 +135,6 @@ def validate_and_fix_card_text(anki_card_text: str) -> str:
         anki_card_text = anki_card_text[:-1]
 
     anki_card_text = make_double_curly(anki_card_text)
-
-    print("ANKI TEXT DATA")
-    print(anki_card_text)
 
     return anki_card_text
 
