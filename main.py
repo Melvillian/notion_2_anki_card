@@ -18,6 +18,9 @@ def main():
     parser = setup_cli_parsers()
     args = parser.parse_args()
 
+    if not args.pickle_filepath.endswith(".pkl"):
+        raise ValueError("--pickle-filepath must end with .pkl, e.g. 'out/cards.pkl'")
+
     if args.command == "scan_notion":
         find_srs_blocks_and_create_anki_cards(args.pickle_filepath)
     elif args.command == "generate_cards":
