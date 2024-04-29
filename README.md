@@ -29,6 +29,11 @@ it in the Anki deck specified in the `.env` file
 - [x] add actual anki cards to my local deck
 - [ ] make it easy to build a single executable so I can make a cronjob out of
       it
+- [x] split text inference and card creation into 2 steps, so that I can
+      manually decide whether or not I want a certain card to be created (I'll
+      create a cron job that runs at most once a day whenever I open a new tmux
+      session that prompts me to approve or delete new cards created by
+      notion_2_anki_card)
 - [ ] (Optional): right now the @srs-items are single block, we could extend
       them to be multi-block (though I'm not sure why I would want that right
       now)

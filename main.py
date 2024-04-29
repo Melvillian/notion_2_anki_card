@@ -101,7 +101,7 @@ def write_anki_cards_to_pickle_file(anki_cards: List[AnkiCard]):
 
 
 def generate_anki_card_and_mark_as_processed():
-    existing_cards: List[AnkiCard] = []
+    existing_cards = []
     try:
         with open(CARD_FILEPATH, "rb") as f:
             existing_cards = pickle.load(f)
@@ -113,8 +113,8 @@ def generate_anki_card_and_mark_as_processed():
         print("")
         print(card.text)
         user_input = input("Do you want to generate this card? (y/n): ").strip().lower()
-        notion_block_id = card.notion_block["id"]
         if user_input == "y" or user_input == "":
+            notion_block_id = card.notion_block["id"]
             print(f"adding card with id {notion_block_id} to Anki deck...")
             add_anki_card_to_deck(card)
         print(f"Updating block with ID: {card.notion_block['id']}")
