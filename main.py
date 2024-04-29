@@ -120,7 +120,6 @@ def generate_anki_card_and_mark_as_processed(pickle_filepath: str):
         with open(pickle_filepath, "rb") as f:
             existing_cards = pickle.load(f)
     except FileNotFoundError:
-        print("No existing cards found, shutting down...")
         return
     print("Please view the list of cards to create and either accept or deny each...\n")
     for card in existing_cards:
